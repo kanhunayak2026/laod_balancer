@@ -1,6 +1,6 @@
 
-from fastapi import FastAPI
-import httpx
+from fastapi import FastAPI,Request
+import httpx 
 
 app = FastAPI()
 
@@ -18,21 +18,19 @@ connections = {
     servers[2]: 1
 }
 
-def get_server():
 
-    server = min(
-        connections,
-        key=connections.get
-    )
+def get_server(client_ip):
 
-    return server
+    server_index = hash(client_ip) % len(servers)
+
+    return servers[server_index]
 
 
 
 
 @app.get("/products")
-async def load_balance():
-
+async def load_balance(request:Request):
+    client_ip = request.client.host
     backend = get_server()
 
     async with httpx.AsyncClient() as client:
